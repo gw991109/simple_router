@@ -190,17 +190,17 @@ def bufferbloat():
     h1 = net.get('h1')
     h2 = net.get('h2')
     h1ip = h1.IP()
-    times = open("%s/fetchTime" % args.dir, 'w')
+    times = open("%s/downloadTime.txt" % args.dir, 'w')
     count = 0
     start_time = time()
     while True:
         # do the measurement (say) 3 times.
         output = h2.popen("curl -o /dev/null -s -w %%\{time_total\} %s/http/index.html" % h1ip, shell=True).stdout.readline()
         count += 1
-        times.write(output + "\r\n")
-        sleep(1)
+        sleep(1) # why is this needed?
         now = time()
         delta = now - start_time
+        times.write(output + "," + delta + "\r\n")
         if delta > args.time:
             break
         print "%.1fs left..." % (args.time - delta)
@@ -209,19 +209,53 @@ def bufferbloat():
     # TODO: compute average (and standard deviation) of the fetch
     # times.  You don't need to plot them.  Just note it in your
     # README and explain.
-    times = open("%s/fetchTime" % args.dir, 'r')
+    # times = open("%s/downloadTime.txt" % args.dir, 'r')
+    # entries = []
+    
+    # for line in times:
+    #     entries.append(float(line))
+    #     total += (float(line))
+    # average = total / len(entries)
+    # times.close()
+    # for item in entries:
+    #     sd_sum += (item - average)**2
+    # sd = math.sqrt(sd_sum / len(entries))
+    
+    m.rc('figure', figsize=(16, 6))
+    fig = figure()
+    ax = fig.add_subplot(111)
     entries = []
-    total = 0
+    for i, f in enumerate("%s/downloadTime.txt" % args.dir):
+        data = read_list(f)
+        if len(data) == 0:
+            print >>sys.stderr, "%s: error: no download time data"%(sys.argv[0])
+            sys.exit(1)
+        
+        print(f"col 0  = {col(0, data)}, col 1 = {col(1, data)}")
+        entries.append(col(0, data))
+
+        xaxis = map(float, col(0, data))
+        start_time = xaxis[0]
+        xaxis = map(lambda x: (x - start_time) / args.freq, xaxis)
+        download_times = map(float, col(1, data))
+
+        ax.scatter(xaxis, download_times, lw=2)
+        ax.xaxis.set_major_locator(MaxNLocator(4))
+
+    plt.ylabel("RTT (ms)")
+    plt.grid(True)
+
+    total = sum(entries)
+    average = total / count
     sd_sum = 0
-    for line in times:
-        entries.append(float(line))
-        total += (float(line))
-    average = total / len(entries)
-    times.close()
     for item in entries:
         sd_sum += (item - average)**2
     sd = math.sqrt(sd_sum / len(entries))
-    
+    print(f"average = {average}")
+    print(f"sd = {sd}")
+
+    plt.savefig("%s/downloadTime.txt" % args.dir)
+
 
     print("average = {}".format(average))
     print("sd = {}".format(sd))

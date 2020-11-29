@@ -82,7 +82,7 @@ class BBTopo(Topo):
 
         # TODO: Add links with appropriate characteristics
         self.addLink(hosts[0], switch, bw = args.bw_host, delay = args.delay, max_queue_size = args.maxq)
-        self.addLink(hosts[1], switch, bw = args.bw_net, delay = args.delay, max_queue_size = args.maxq
+        self.addLink(hosts[1], switch, bw = args.bw_net, delay = args.delay, max_queue_size = args.maxq)
 
 # Simple wrappers around monitoring utilities.  You are welcome to
 # contribute neatly written (using classes) monitoring scripts for
@@ -106,6 +106,7 @@ def start_qmon(iface, interval_sec=0.1, outfile="q.txt"):
 
 def start_iperf(net):
     h2 = net.get('h2')
+    h1 = net.get('h1')
     print "Starting iperf server..."
     # For those who are curious about the -w 16m parameter, it ensures
     # that the TCP flow is not receiver window limited.  If it is,

@@ -21,6 +21,9 @@ import termcolor as T
 import sys
 import os
 import math
+import matplotlib as m
+from pylab import figure
+from helper import *
 
 # TODO: Don't just read the TODO sections in this code.  Remember that
 # one of the goals of this assignment is for you to learn how to use
@@ -200,7 +203,8 @@ def bufferbloat():
         sleep(1) # why is this needed?
         now = time()
         delta = now - start_time
-        times.write(output + "," + delta + "\r\n")
+        print(output + "," + str(delta) + "\r\n")
+        times.write(output + "," + str(delta) + "\r\n")
         if delta > args.time:
             break
         print "%.1fs left..." % (args.time - delta)
@@ -226,12 +230,14 @@ def bufferbloat():
     ax = fig.add_subplot(111)
     entries = []
     for i, f in enumerate("%s/downloadTime.txt" % args.dir):
-        data = read_list(f)
+        print(f)
+        data = read_list("%s/downloadTime.txt" % args.dir)
         if len(data) == 0:
             print >>sys.stderr, "%s: error: no download time data"%(sys.argv[0])
             sys.exit(1)
-        
-        print(f"col 0  = {col(0, data)}, col 1 = {col(1, data)}")
+        one = col(0, data)
+        two = col(1, data)
+        print('col 0  = {}, col 1 = {}'.format(one, two))
         entries.append(col(0, data))
 
         xaxis = map(float, col(0, data))
@@ -251,10 +257,10 @@ def bufferbloat():
     for item in entries:
         sd_sum += (item - average)**2
     sd = math.sqrt(sd_sum / len(entries))
-    print(f"average = {average}")
-    print(f"sd = {sd}")
+    print(f'average = {average}')
+    print(f'sd = {sd}')
 
-    plt.savefig("%s/downloadTime.txt" % args.dir)
+    plt.savefig("%s/downloadTime.png" % args.dir)
 
 
     print("average = {}".format(average))

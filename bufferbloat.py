@@ -210,15 +210,18 @@ def bufferbloat():
     # times.  You don't need to plot them.  Just note it in your
     # README and explain.
     times = open("%s/fetchTime" % args.dir, 'r')
+    entries = []
     total = 0
     sd_sum = 0
     for line in times:
-        total += float(line)
-    average = total / count
-    for line in times:
-        sd_sum += (float(line) - average)**2
-    sd = (sd_sum / count)**0.5
+        entries.append(float(line))
+        total += (float(line))
+    average = total / len(entries)
     times.close()
+    for item in entries:
+        sd_sum += (item - average)**2
+    sd = math.sqrt(sd_sum / len(entries))
+    
 
     print("average = {}".format(average))
     print("sd = {}".format(sd))

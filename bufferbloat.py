@@ -22,8 +22,10 @@ import sys
 import os
 import math
 import matplotlib as m
-from helper import *
+m.use("Agg")
+from matplotlib.ticker import MaxNLocator
 from pylab import figure
+from helper import *
 
 # TODO: Don't just read the TODO sections in this code.  Remember that
 # one of the goals of this assignment is for you to learn how to use
@@ -203,7 +205,6 @@ def bufferbloat():
         sleep(1) # why is this needed?
         now = time()
         delta = now - start_time
-	print(output + "," + str(delta) + "\r\n")
         times.write(output + "," + str(delta) + "\r\n")
         if delta > args.time:
             break
@@ -228,43 +229,33 @@ def bufferbloat():
     m.rc('figure', figsize=(16, 6))
     fig = figure()
     ax = fig.add_subplot(111)
-    entries = []
-    for i, f in enumerate("%s/downloadTime.txt" % args.dir):
-        data = read_list(f)
-        if len(data) == 0:
-            print >>sys.stderr, "%s: error: no download time data"%(sys.argv[0])
-            sys.exit(1)
-        
-	one = col(0, data)
-	two = col(1, data)
-        print('col 0  = {}, col 1 = {}'.format(one, two))
-        entries.append(col(0, data))
 
-        xaxis = map(float, col(0, data))
-        start_time = xaxis[0]
-        xaxis = map(lambda x: (x - start_time) / args.freq, xaxis)
-        download_times = map(float, col(1, data))
+    data = read_list("%s/downloadTime.txt" % args.dir)
+    if len(data) == 0:
+        print >>sys.stderr, "%s: error: no download time data"%(sys.argv[0])
+        sys.exit(1)
 
-        ax.scatter(xaxis, download_times, lw=2)
-        ax.xaxis.set_major_locator(MaxNLocator(4))
+    xaxis = map(float, col(1, data))
+    start_time = xaxis[0]
+    download_times = map(float, col(0, data))
 
-    plt.ylabel("RTT (ms)")
+    ax.scatter(xaxis, download_times, lw=2)
+    ax.xaxis.set_major_locator(MaxNLocator(4))
+
+    plt.ylabel("Download Times (seconds)")
     plt.grid(True)
 
-    total = sum(entries)
+    total = sum(download_times)
     average = total / count
     sd_sum = 0
-    for item in entries:
+    for item in download_times:
         sd_sum += (item - average)**2
-    sd = math.sqrt(sd_sum / len(entries))
+    sd = math.sqrt(sd_sum / len(download_times))
+
     print('average = {}'.format(average))
     print('sd = {}'.format(sd))
 
-    plt.savefig("%s/downloadTime.txt" % args.dir)
-
-
-    print("average = {}".format(average))
-    print("sd = {}".format(sd))
+    plt.savefig("%s/downloadTime.png" % args.dir)
 
     stop_tcpprobe()
     if qmon is not None:
